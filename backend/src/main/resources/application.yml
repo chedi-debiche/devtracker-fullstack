@@ -17,7 +17,7 @@ server:
   port: 8080
 
 jwt:
-  secret: devtracker-super-secret-key-2025-change-in-prod-32chars-minimum
+  secret: dGhpc0lzQVNpbXBsZVNlY3JldEtleUZvckRldkRldiE=
   expiration: 86400000
   refresh-expiration: 604800000
 
