@@ -6,16 +6,18 @@ import com.devtracker.devtracker_backend.user.User;
 import com.devtracker.devtracker_backend.user.UserRepository;
 import com.devtracker.devtracker_backend.user.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -67,4 +69,26 @@ public class AuthController {
         // 4) Retourner le token au client
         return ResponseEntity.ok(new AuthResponse(jwt));
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication != null && authentication.isAuthenticated()) {
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+            User user = userRepository.findByEmail(userDetails.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            return ResponseEntity.ok(Map.of(
+                    "email", user.getEmail(),
+                    "firstName", user.getFirstName(),
+                    "lastName", user.getLastName(),
+                    "role", user.getRole()
+            ));
+        }
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not authenticated");
+    }
+
 }
